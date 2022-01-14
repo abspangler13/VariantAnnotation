@@ -4,61 +4,45 @@ Script to annotated genetic variants from VCF file.
 
 ## Description
 
-An in-depth paragraph about your project and overview of use.
+This script first takes a .vcf file, converts it a GRanges data object. It then creates a separate data frame of annotations including the depth of sequence coverage, variant type, alternate allele frequency, and a few others. Lastly, it saves this annotation data frame as a .csv file in the working directory. 
 
 ## Getting Started
 
 ### Dependencies
 
-* Describe any prerequisites, libraries, OS version, etc., needed before installing program.
-* ex. Windows 10
+* Make sure you have the following packages installed from CRAN or Bioconductor.
+
+```
+BiocManager::install("VariantAnnotation")
+BiocManager::install("SeqVarTools")
+install.packages("here")
+BiocManager::install("BSgenome.Hsapiens.UCSC.hg19")
+BiocManager::install("TxDb.Hsapiens.UCSC.hg19.knownGen")
+```
 
 ### Installing
 
-* How/where to download your program
-* Any modifications needed to be made to files/folders
+* No installation necessary
 
 ### Executing program
 
-* Make sure you have all the required packages installed from CRAN or Biocondicutor. 
-* Create directory that contains the script and the VCF data file. 
+* Create a directory that contains the script and the VCF data file. 
 * Open R from that directory.
 * Simply run script from top to bottom. 
-```
-code blocks for commands
-```
 
 ## Help
 
-Any advise for common problems or issues.
-```
-command to run if program contains helper info
-```
+Contact the Author.
 
 ## Authors
 
-Contributors names and contact info
-
-ex. Dominique Pizzie  
-ex. [@DomPizzie](https://twitter.com/dompizzie)
-
-## Version History
-
-* 0.2
-    * Various bug fixes and optimizations
-    * See [commit change]() or See [release history]()
-* 0.1
-    * Initial Release
-
-## License
-
-This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
+ex. Abby Spangler  
+ex. [LinkedIn](www.linkedin.com/in/abby-spangler-72166883)
 
 ## Acknowledgments
 
-Inspiration, code snippets, etc.
-* [awesome-readme](https://github.com/matiassingers/awesome-readme)
-* [PurpleBooth](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
-* [dbader](https://github.com/dbader/readme-template)
-* [zenorocha](https://gist.github.com/zenorocha/4526327)
-* [fvcproductions](https://gist.github.com/fvcproductions/1bfc2d4aecb01a834b46)
+Inspiration, most helpful packages, etc.
+* [VariantAnnotation](https://bioconductor.org/packages/release/bioc/html/VariantAnnotation.html)
+* [SeqVarTools](http://www.bioconductor.org/packages/release/bioc/html/SeqVarTools.html)
+
+Thank you for interviewing me, Tempus!
