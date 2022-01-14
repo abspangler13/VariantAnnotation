@@ -2,7 +2,6 @@
 
 ##Load packages
 library(VariantAnnotation)
-library(SeqVarTools)
 library(here)
 library(BSgenome.Hsapiens.UCSC.hg19)
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
@@ -17,10 +16,10 @@ ann <- as.data.frame(ranges(vcf))
 # intergenic, etc.). If there are multiple effects, annotate with the most deleterious 
 # possibility.
 
-#Determine type of variation with SeqVarTools package
-ann$var.type[which(isSubstitution(vcf)==TRUE)] <- "substitution"
-ann$var.type[which(isInsertion(vcf)==TRUE)] <- "insertion"  #no insertions???
-ann$var.type[which(isDeletion(vcf)==TRUE)] <- "deletion" #no deletions???
+#Determine type of variation 
+for(i in 1:length(ranges(vcf))){
+  ann$var.type <-  unlist(vcf@info$TYPE[[i]][1])
+}
 
 #Effect of variation (missence (changes the amino acid), silent (doesn't change amino acid), intergenic)
 txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
@@ -56,12 +55,32 @@ for (i in 1:length(ranges(vcf))){
   
 }
 
+ann$var.effect <- NA
+for(i in 1:nrow(ann)){
+  if(ann$frameshift[i]==TRUE){
+    ann$var.effect[i] <- "frameshift"
+    next
+  }
+  if(ann$missence[i]==TRUE){
+    ann$var.effect[i] <- "missence"
+    next
+  }
+  if (ann$silent[i]==TRUE){
+    ann$var.effect[i] <- "silent"
+    next
+  }
+  else{
+    ann$var.effect[i] <- "unknown"
+  }
+    
+}
+
 
 #https://bioconductor.org/packages/release/bioc/vignettes/VariantAnnotation/inst/doc/VariantAnnotation.pdf
 #proteinCoding()
 
 ## 2. Depth of sequence coverage at the site of variation
-ann$depth <- info(vcf)$DP #pulls out depth from info field DP
+ann$depth <- vcf@info$DP #pulls out depth from info field DP
 
 ## 3. Number of reads supporting the variant.
 
@@ -69,11 +88,12 @@ ann$depth <- info(vcf)$DP #pulls out depth from info field DP
 # DPRA = ALT Depth / REF Depth for a given variant. To find the number of reads supporting the ALT variant we must 
 # solve the following equation DPRA = ALT / (DP - ALT) for ALT. ALT = (DPRA * DP) / (1 + DPRA)
 dpra <- numeric()
-for(i in 1:6977){
-  dpra[i] <- info(vcf)$DPRA[[i]][1]
+for(i in 1:length(ranges(vcf))){
+  dpra[i] <-  vcf@info$DPRA[[i]][1]
 }
-dpra <- unlist(dpra)
-ann$var.num <- dpra*info(vcf)$DP / (1 + dpra)
+dpra <-unlist(dpra)
+ann <- cbind(ann,dpra)
+ann$var.num <- ann$dpra* vcf@info$DP / (1 + ann$dpra)
 
 ## 4. Percentage of reads supporting the variant versus those supporting reference reads. 
 
@@ -85,10 +105,14 @@ ann$percent.ref <- (ann$depth - ann$var.num)/ann$depth
 
 ## 5. 
 
-## 6. 
+## 6. Percent reads of ref on forward strand.
+# first calculate number of reads supporting ref
+ann$ref.num <- vcf@info$DP/(dpra +1)
 
+#calculate percent of reference reads on forward strand
+ann$perc.ref.for <- vcf@info$SRF/ann$ref.num
 
-write.csv(ann,here::here(), row.names = TRUE)
+write.csv(ann,here::here("annotations.csv"), row.names = TRUE)
 
 
 

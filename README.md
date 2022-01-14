@@ -4,7 +4,7 @@ Script to annotated genetic variants from VCF file.
 
 ## Description
 
-This script first takes a .vcf file, converts it a GRanges data object. It then creates a separate data frame of annotations including the depth of sequence coverage, variant type, alternate allele frequency, and a few others. Lastly, it saves this annotation data frame as a .csv file in the working directory. 
+This script first takes a .vcf file and converts it a GRanges data object. It then creates a separate data frame of annotations including the depth of sequence coverage, variant type, alternate allele frequency, and a few others. Lastly, it saves this annotation data frame as a .csv file in the working directory. 
 
 ## Locations of answers to challenge questions in output file
 1. `var.type` and `var.effect` columns
@@ -12,8 +12,7 @@ This script first takes a .vcf file, converts it a GRanges data object. It then 
 3. `var.num` column
 4. `percent.var` and `percent.ref` columns
 5. not completed
-5. `rsid` column 
-
+6. `perc.ref.for`
 
 [Link to GitHub repo](https://github.com/abspangler13/tempus_coding_challenge)
 
@@ -25,7 +24,6 @@ This script first takes a .vcf file, converts it a GRanges data object. It then 
 
 ```
 BiocManager::install("VariantAnnotation")
-BiocManager::install("SeqVarTools")
 install.packages("here")
 BiocManager::install("BSgenome.Hsapiens.UCSC.hg19")
 BiocManager::install("TxDb.Hsapiens.UCSC.hg19.knownGen")
@@ -54,6 +52,5 @@ ex. [LinkedIn](www.linkedin.com/in/abby-spangler-72166883)
 
 Inspiration, most helpful packages, etc.
 * [VariantAnnotation](https://bioconductor.org/packages/release/bioc/html/VariantAnnotation.html)
-* [SeqVarTools](http://www.bioconductor.org/packages/release/bioc/html/SeqVarTools.html)
 
 Thank you for interviewing me, Tempus!
