@@ -11,7 +11,7 @@ library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 vcf <- readVcf(here::here("Challenge_data_(1).vcf"), "hg19")
 
 ## 0. set up annotation dataframe
-ann <- as.data.frame(rowRanges(vcf))
+ann <- as.data.frame(ranges(vcf))
 
 ## 1. Type of variation (substitution, insertion, CNV, etc.) and their effect (missense, silent, 
 # intergenic, etc.). If there are multiple effects, annotate with the most deleterious 
@@ -31,25 +31,31 @@ txbd <- keepSeqlevels(txdb, common.seq.levels, pruning.mode="coarse")
 
 coding <- predictCoding(vcf, txdb, seqSource=Hsapiens) #compute amino acid changes
 
-ann$var.effect <- NA
-for (i in 1:6977){
+ann$frameshift <- FALSE
+ann$missence <- FALSE
+ann$silent <- FALSE
+  
+for (i in 1:length(ranges(vcf))){
   indices = which(ranges(coding) == ranges(vcf)[i])
-  for (j in length(indices)){
-    index = indices[j]
-    if(coding$VARAA[index]==""){
-      ann$var.effect[i] == "frameshift"
+  if(length(indices) == 0){
+    next
+  }
+  for (j in 1:length(indices)){
+    index = indices[j] #index = indices[1]
+    if(toString(coding$VARAA[index])==""){
+      ann$frameshift[i] = TRUE
     }
-    else if (coding$VARAA)
-      
+    else if (toString(coding$VARAA[index])!=toString(coding$REFAA[index])){
+      ann$missence[i] =TRUE
+    }
+    else if (toString(coding$VARAA[index])==toString(coding$REFAA[index])){
+      ann$silent[i] =TRUE
+    }
     
   }
   
 }
 
-
-ann$var.effect[which(coding$REFAA==coding$VARAA)] <- "silent"
-
-which(coding$VARAA=="") == "frameshift"
 
 #https://bioconductor.org/packages/release/bioc/vignettes/VariantAnnotation/inst/doc/VariantAnnotation.pdf
 #proteinCoding()
