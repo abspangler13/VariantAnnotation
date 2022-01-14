@@ -6,6 +6,17 @@ Script to annotated genetic variants from VCF file.
 
 This script first takes a .vcf file, converts it a GRanges data object. It then creates a separate data frame of annotations including the depth of sequence coverage, variant type, alternate allele frequency, and a few others. Lastly, it saves this annotation data frame as a .csv file in the working directory. 
 
+## Locations of answers to challenge questions in output file
+1. `var.type` and `var.effect` columns
+2. `depth` column
+3. `var.num` column
+4. `percent.var` and `percent.ref` columns
+5. not completed
+5. `rsid` column 
+
+
+[Link to GitHub repo](https://github.com/abspangler13/tempus_coding_challenge)
+
 ## Getting Started
 
 ### Dependencies
