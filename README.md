@@ -1,6 +1,6 @@
 # Tempus Coding Challenge
 
-Script to annotated genetic variants from VCF file.
+Script to annotate genetic variants from VCF file.
 
 ## Description
 
