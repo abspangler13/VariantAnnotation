@@ -1,4 +1,4 @@
-# Tempus Coding Challenge
+# VariantAnnotation Example
 
 Script to annotate genetic variants from VCF file.
 
