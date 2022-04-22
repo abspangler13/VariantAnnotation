@@ -5,12 +5,10 @@ date: "4/20/2022"
 output: html_document
 ---
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
-## R Markdown
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-```{r library, echo=TRUE}
+For this rstats club we will be going through how to use the variant annotation package to wrangle and annotate a vcf file. This is a common request of investigators and can be a valuable tool in genotype based studies.
+```{r library, echo=FALSE}
 ### Tempus coding challenge
 ##Load packages
 library(VariantAnnotation)
@@ -18,11 +16,16 @@ library(here)
 library(BSgenome.Hsapiens.UCSC.hg19)
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 ```
-## Including Plots
-You can also embed plots, for example:
+Below we can use the `readVCF()` function to read in our sample dataset below.
 ```{r readVCF, echo=TRUE}
 ##read vcf file into GRanges object 
-vcf <- readVcf(here::here("Challenge_data_(1).vcf"), "hg19")
+vcf <- readVcf("Challenge_data_(1).vcf", "hg19")
+```
+After we've read in the data it's probably a good time to refresh on the structure of a vcf file and the `vcf` object in our R environment.
+![Alt text](vcflabeled.png)
+And below is the structure of our R object
+```{r strVCF, echo=TRUE}
+vcf
 ```
 ```{r MakeANN, echo=TRUE}
 ## 0. set up annotation dataframe
