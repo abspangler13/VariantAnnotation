@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = FALSE)
 For this rstats club we will be going through how to use the variant annotation package to wrangle and annotate a vcf file. This is a common request of investigators and can be a valuable tool in genotype based studies.
 ```{r library, echo=FALSE}
 ### Tempus coding challenge
-##Load packages
+## Load packages
 library(VariantAnnotation)
 library(here)
 library(BSgenome.Hsapiens.UCSC.hg19)
@@ -18,7 +18,7 @@ library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 ```
 Below we can use the `readVCF()` function to read in our sample dataset below.
 ```{r readVCF, echo=TRUE}
-##read vcf file into GRanges object 
+## read vcf file into GRanges object
 vcf <- readVcf("Challenge_data_(1).vcf", "hg19")
 ```
 After we've read in the data it's probably a good time to refresh on the structure of a vcf file and the `vcf` object in our R environment.
@@ -32,66 +32,71 @@ vcf
 ann <- as.data.frame(ranges(vcf))
 ```
 ```{r GetTYPE, echo=TRUE}
-#Determine type of variation 
-for(i in 1:length(ranges(vcf))){
-  ann$var.type <-  unlist(vcf@info$TYPE[[i]][1])
-}
+# Determine type of variation
+ann$var.type <- sapply(vcf@info$TYPE, function(x) {
+    paste(sort(unique(x)), collapse = ",")
+})
 ```
+
 ```{r GetEffect, echo=TRUE}
-#Effect of variation (missence (changes the amino acid), silent (doesn't change amino acid), intergenic)
+# Effect of variation (missence (changes the amino acid), silent (doesn't change amino acid), intergenic)
 txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
-seqlevels(vcf)[1:25] <- paste0("chr",seqlevels(vcf))
+seqlevels(vcf)[1:25] <- paste0("chr", seqlevels(vcf))
 common.seq.levels <- intersect(seqlevels(vcf), seqlevels(txdb))
-vcf <- keepSeqlevels(vcf, common.seq.levels, pruning.mode="coarse")
-txbd <- keepSeqlevels(txdb, common.seq.levels, pruning.mode="coarse")
-coding <- predictCoding(vcf, txdb, seqSource=Hsapiens) #compute amino acid changes
+vcf <- keepSeqlevels(vcf, common.seq.levels, pruning.mode = "coarse")
+txbd <- keepSeqlevels(txdb, common.seq.levels, pruning.mode = "coarse")
+coding <- predictCoding(vcf, txdb, seqSource = Hsapiens) # compute amino acid changes
 ann$frameshift <- FALSE
 ann$missence <- FALSE
 ann$silent <- FALSE
 ```
+
 ```{r GetIndices, echo=TRUE}
-for (i in 1:length(ranges(vcf))){
-  indices = which(ranges(coding) == ranges(vcf)[i])
-  if(length(indices) == 0){
-    next
-  }
-  for (j in 1:length(indices)){
-    index = indices[j] #index = indices[1]
-    if(toString(coding$VARAA[index])==""){
-      ann$frameshift[i] = TRUE
+for (i in 1:length(ranges(vcf))) {
+    indices <- which(ranges(coding) == ranges(vcf)[i])
+    if (length(indices) == 0) {
+        next
     }
-    else if (toString(coding$VARAA[index])!=toString(coding$REFAA[index])){
-      ann$missence[i] =TRUE
+    for (j in 1:length(indices)) {
+        index <- indices[j] # index = indices[1]
+        if (toString(coding$VARAA[index]) == "") {
+            ann$frameshift[i] <- TRUE
+        } else if (toString(coding$VARAA[index]) != toString(coding$REFAA[index])) {
+            ann$missence[i] <- TRUE
+        } else if (toString(coding$VARAA[index]) == toString(coding$REFAA[index])) {
+            ann$silent[i] <- TRUE
+        }
     }
-    else if (toString(coding$VARAA[index])==toString(coding$REFAA[index])){
-      ann$silent[i] =TRUE
-    }
-    
-  }
 }
 ``` 
  
 ```{r GetVarEffect, echo=TRUE}
 ann$var.effect <- NA
-for(i in 1:nrow(ann)){
-  if(ann$frameshift[i]==TRUE){
-    ann$var.effect[i] <- "frameshift"
-    next
-  }
-  if(ann$missence[i]==TRUE){
-    ann$var.effect[i] <- "missence"
-    next
-  }
-  if (ann$silent[i]==TRUE){
-    ann$var.effect[i] <- "silent"
-    next
-  }
-  else{
-    ann$var.effect[i] <- "unknown"
-  }
-    
+for (i in 1:nrow(ann)) {
+    if (ann$frameshift[i] == TRUE) {
+        ann$var.effect[i] <- "frameshift"
+        next
+    }
+    if (ann$missence[i] == TRUE) {
+        ann$var.effect[i] <- "missence"
+        next
+    }
+    if (ann$silent[i] == TRUE) {
+        ann$var.effect[i] <- "silent"
+        next
+    } else {
+        ann$var.effect[i] <- "unknown"
+    }
 }
+ov <- findOverlaps(vcf, coding, type = "equal")
+ann$consequence <- rep(NA, nrow(ann))
+x <- tapply(coding$CONSEQUENCE[subjectHits(ov)], queryHits(ov), function(x) {
+    paste(sort(unique(x)), collapse = ",")
+})
+ann$consequence[as.integer(names(x))] <- x
+with(ann, table(consequence, var.effect))
 ```
+
 ```{r GetDepth, echo=TRUE}
 ## 2. Depth of sequence coverage at the site of variation
 ann$depth <- vcf@info$DP
@@ -99,26 +104,26 @@ ann$depth <- vcf@info$DP
 ```{r GetDPRA, echo=TRUE}
 ## 3. Number of reads supporting the variant.
 # DRPA is this ratio of depths such that ALT Depth:REF Depth and is presented as a decimal so
-# DPRA = ALT Depth / REF Depth for a given variant. To find the number of reads supporting the ALT variant we must 
+# DPRA = ALT Depth / REF Depth for a given variant. To find the number of reads supporting the ALT variant we must
 # solve the following equation DPRA = ALT / (DP - ALT) for ALT. ALT = (DPRA * DP) / (1 + DPRA)
 dpra <- numeric()
-for(i in 1:length(ranges(vcf))){
-  dpra[i] <-  vcf@info$DPRA[[i]][1]
+for (i in 1:length(ranges(vcf))) {
+    dpra[i] <- vcf@info$DPRA[[i]][1]
 }
-dpra <-unlist(dpra)
-ann <- cbind(ann,dpra)
-ann$var.num <- ann$dpra* vcf@info$DP / (1 + ann$dpra)
+dpra <- unlist(dpra)
+ann <- cbind(ann, dpra)
+ann$var.num <- ann$dpra * vcf@info$DP / (1 + ann$dpra)
 ```
 ```{r GetPercentVar,echo=TRUE}
 # percentage of reads supporting Variant
-ann$percent.var <- ann$var.num/ann$depth
-#percentage of reads supporting ref
-ann$percent.ref <- (ann$depth - ann$var.num)/ann$depth
-## 5. 
+ann$percent.var <- ann$var.num / ann$depth * 100
+# percentage of reads supporting ref
+ann$percent.ref <- (ann$depth - ann$var.num) / ann$depth * 100
+## 5.
 ## 6. Percent reads of ref on forward strand.
 # first calculate number of reads supporting ref
-ann$ref.num <- vcf@info$DP/(dpra +1)
-#calculate percent of reference reads on forward strand
-ann$perc.ref.for <- vcf@info$SRF/ann$ref.num
-write.csv(ann,here::here("annotations.csv"), row.names = TRUE)
+ann$ref.num <- vcf@info$DP / (dpra + 1)
+# calculate percent of reference reads on forward strand
+ann$perc.ref.for <- vcf@info$SRF / ann$ref.num * 100
+write.csv(ann, here::here("annotations.csv"), row.names = TRUE)
 ```
